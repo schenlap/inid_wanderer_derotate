@@ -68,7 +68,6 @@ public:
     void setTrimPercent(double p) { m_factor = 1.0 + p / 100.0; }   // e.g. +0.3 = 0.3 % faster
     void setMaxRate(double degPerSec) { m_maxRate = degPerSec; }    // limit near zenith
     void setMinStep(double deg_) { m_minStep = deg_; }              // smallest commanded step
-    void setReverse(bool r) { m_sign = r ? 1.0 : -1.0; }            // rotate with/against sign convention
 
     bool active() const { return m_active; }
     double lastRate() const { return m_lastRate; }                  // deg/s incl. trim
@@ -136,7 +135,7 @@ private:
     double m_factor    = 1.0;
     double m_maxRate   = 0.05;
     double m_minStep   = 0.01;
-    double m_sign      = -1.0;
+    const double m_sign = -1.0;   // direction is set via the rotator's standard Reverse switch
     double m_ideal     = 0.0;
     double m_commanded = 0.0;
     double m_lastT     = 0.0;

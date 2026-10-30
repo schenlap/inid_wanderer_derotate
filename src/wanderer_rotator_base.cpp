@@ -78,12 +78,6 @@ bool WandererRotatorBase::initProperties()
     DerotateSP.fill(getDeviceName(), "FIELD_DEROTATION", "Field Derotation", DEROTATE_TAB, IP_RW, ISR_1OFMANY, 60,
                     IPS_IDLE);
 
-    DerotateDirSP[0].fill("DEROTATE_NORMAL", "Normal", ISS_ON);
-    DerotateDirSP[1].fill("DEROTATE_REVERSED", "Reversed", ISS_OFF);
-    DerotateDirSP.fill(getDeviceName(), "DEROTATION_DIRECTION", "Direction", DEROTATE_TAB, IP_RW, ISR_1OFMANY, 60,
-                       IPS_IDLE);
-    DerotateDirSP.load();
-
     DerotateSettingsNP[DEROT_TRIM].fill("TRIM", "Speed trim (%)", "%.2f", -10, 10, 0.1, 0);
     DerotateSettingsNP[DEROT_MAXRATE].fill("MAX_RATE", "Max rate (deg/s)", "%.3f", 0.005, 0.2, 0.005, 0.05);
     DerotateSettingsNP[DEROT_INTERVAL].fill("INTERVAL", "Update interval (s)", "%.0f", 3, 60, 1, 5);
@@ -117,7 +111,6 @@ bool WandererRotatorBase::updateProperties()
         defineProperty(AccuracyNP);
 
         defineProperty(DerotateSP);
-        defineProperty(DerotateDirSP);
         defineProperty(DerotateSettingsNP);
         defineProperty(DerotateStatusNP);
         defineProperty(DerotateMountTP);
@@ -129,7 +122,6 @@ bool WandererRotatorBase::updateProperties()
         m_Derotator.stop();
         m_resumeDerotation = m_hasPendingTarget = m_derotMoveInFlight = false;
         deleteProperty(DerotateSP);
-        deleteProperty(DerotateDirSP);
         deleteProperty(DerotateSettingsNP);
         deleteProperty(DerotateStatusNP);
         deleteProperty(DerotateMountTP);
@@ -181,15 +173,6 @@ bool WandererRotatorBase::ISNewSwitch(const char *dev, const char *name, ISState
                 DerotateSP.setState(IPS_IDLE);
             }
             DerotateSP.apply();
-            return true;
-        }
-
-        if (DerotateDirSP.isNameMatch(name))
-        {
-            DerotateDirSP.update(states, names, n);
-            DerotateDirSP.setState(IPS_OK);
-            DerotateDirSP.apply();
-            applyDerotationSettings();
             return true;
         }
     }
@@ -324,7 +307,6 @@ void WandererRotatorBase::applyDerotationSettings()
 {
     m_Derotator.setTrimPercent(DerotateSettingsNP[DEROT_TRIM].getValue());
     m_Derotator.setMaxRate(DerotateSettingsNP[DEROT_MAXRATE].getValue());
-    m_Derotator.setReverse(DerotateDirSP[1].getState() == ISS_ON);
     m_Derotator.setMinStep(1.0 / std::max(1, getStepsPerDegree()));   // smallest possible move: 1 step
 }
 
@@ -409,7 +391,6 @@ bool WandererRotatorBase::saveConfigItems(FILE *fp)
     INDI::Rotator::saveConfigItems(fp);
     AccuracyNP.save(fp);
     DerotateSettingsNP.save(fp);
-    DerotateDirSP.save(fp);
     DerotateMountTP.save(fp);
     return true;
 }

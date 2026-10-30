@@ -76,7 +76,6 @@ protected:
     static double monotonicSeconds();
 
     INDI::PropertySwitch DerotateSP{2};            // Enable / Disable
-    INDI::PropertySwitch DerotateDirSP{2};         // Normal / Reversed
     INDI::PropertyNumber DerotateSettingsNP{3};    // trim [%], max rate [deg/s], interval [s]
     INDI::PropertyNumber DerotateStatusNP{4};      // az, alt, field rotation rate [deg/h], rotator speed [deg/h] (read only)
     INDI::PropertyText   DerotateMountTP{1};       // INDI device name of the mount to follow
