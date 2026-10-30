@@ -28,6 +28,10 @@
 #include "indirotator.h"
 #include "indirotatorinterface.h"
 #include "indipropertyswitch.h"
+#include "indipropertynumber.h"
+#include "indipropertytext.h"
+#include "lilxml.h"
+#include "field_derotator.h"
 
 class WandererRotatorBase : public INDI::Rotator
 {
@@ -38,6 +42,8 @@ public:
     bool updateProperties() override;
     bool ISNewSwitch(const char *dev, const char *name, ISState *states, char *names[], int n) override;
     bool ISNewNumber(const char *dev, const char *name, double values[], char *names[], int n) override;
+    bool ISNewText(const char *dev, const char *name, char *texts[], char *names[], int n) override;
+    bool ISSnoopDevice(XMLEle *root) override;
     bool saveConfigItems(FILE *fp) override;
 
 protected:
@@ -55,6 +61,41 @@ protected:
     bool Handshake() override;
     bool sendCommand(std::string command);
     bool Move(const char *cmd);
+
+    // ---- Field derotation for alt-az mounts (follows a mount via INDI snooping) ----
+    bool derotationTick();            // returns true if a move was issued
+    void derotationSubscribe();
+    void applyDerotationSettings();
+    bool startDerotation(bool resume = false);
+
+    // ---- Client moves (e.g. Ekos sequencer) while derotation is active ----
+    IPState requestAbsoluteMove(double angle, bool exact = false);  // pauses derotation, queues behind a running derotation step
+    IPState startAbsoluteMove(double angle, bool exact);            // issues the relative step command for an absolute target
+    bool continueAfterMove(bool halted);                            // true if a queued target was started (state stays BUSY)
+    void resumeDerotation();                                        // restarts derotation (integrator = 0) if it was active before
+    static double monotonicSeconds();
+
+    INDI::PropertySwitch DerotateSP{2};            // Enable / Disable
+    INDI::PropertySwitch DerotateDirSP{2};         // Normal / Reversed
+    INDI::PropertyNumber DerotateSettingsNP{3};    // trim [%], max rate [deg/s], interval [s]
+    INDI::PropertyNumber DerotateStatusNP{3};      // az, alt, rate [deg/h] (read only)
+    INDI::PropertyText   DerotateMountTP{1};       // INDI device name of the mount to follow
+
+    FieldDerotation::Derotator m_Derotator;
+    double m_mountRA = 0, m_mountDec = 0, m_mountLat = 0, m_mountLong = 0;
+    bool m_hasRA = false, m_hasDec = false, m_hasLat = false, m_hasLong = false;
+    bool m_warnedNoData = false;
+    double m_lastDerotMove = 0;
+    double m_simAngle = 0;          // mechanical angle in simulation mode
+    double m_signedAngle = 0;       // virtual mechanical angle reported by the firmware (signed, deg)
+    bool m_derotMoveInFlight = false;  // a derotation step still waits for its acknowledgement
+    bool m_resumeDerotation = false;   // derotation was running when a client move was requested
+    bool m_hasPendingTarget = false;   // client move queued until the running derotation step is done
+    bool m_pendingExact = false;       // queued target is an exact (non-shortest-path) move, e.g. Home
+    double m_pendingTarget = 0;
+
+    enum { DEROT_TRIM, DEROT_MAXRATE, DEROT_INTERVAL };
+    enum { DEROT_AZ, DEROT_ALT, DEROT_RATE };
 
     INDI::PropertySwitch SetZeroSP{1};
     INDI::PropertyNumber BacklashNP{1};
