@@ -93,6 +93,7 @@ bool WandererRotatorBase::initProperties()
     DerotateStatusNP[DEROT_AZ].fill("AZ", "Azimuth (deg)", "%.2f", 0, 360, 0, 0);
     DerotateStatusNP[DEROT_ALT].fill("ALT", "Altitude (deg)", "%.2f", -90, 90, 0, 0);
     DerotateStatusNP[DEROT_RATE].fill("RATE", "Field rotation (deg/h)", "%.2f", -10000, 10000, 0, 0);
+    DerotateStatusNP[DEROT_SPEED].fill("SPEED", "Derotation speed (deg/h)", "%.2f", -10000, 10000, 0, 0);
     DerotateStatusNP.fill(getDeviceName(), "DEROTATION_STATUS", "Status", DEROTATE_TAB, IP_RO, 60, IPS_IDLE);
 
     DerotateMountTP[0].fill("MOUNT", "Mount device", "");
@@ -346,7 +347,14 @@ bool WandererRotatorBase::startDerotation(bool resume)
 bool WandererRotatorBase::derotationTick()
 {
     if (!m_Derotator.active())
+    {
+        if (DerotateStatusNP[DEROT_SPEED].getValue() != 0.0)
+        {
+            DerotateStatusNP[DEROT_SPEED].setValue(0);
+            DerotateStatusNP.apply();
+        }
         return false;
+    }
 
     if (!(m_hasRA && m_hasDec && m_hasLat && m_hasLong))
     {
@@ -369,6 +377,7 @@ bool WandererRotatorBase::derotationTick()
     DerotateStatusNP[DEROT_AZ].setValue(az);
     DerotateStatusNP[DEROT_ALT].setValue(alt);
     DerotateStatusNP[DEROT_RATE].setValue(m_Derotator.lastRate() * 3600.0);
+    DerotateStatusNP[DEROT_SPEED].setValue(m_Derotator.signedRate() * 3600.0);
     DerotateStatusNP.setState(m_Derotator.rateLimited() ? IPS_ALERT : IPS_OK);
     DerotateStatusNP.apply();
 

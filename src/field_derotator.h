@@ -72,6 +72,7 @@ public:
 
     bool active() const { return m_active; }
     double lastRate() const { return m_lastRate; }                  // deg/s incl. trim
+    double signedRate() const { return m_active ? m_sign * m_lastRate : 0.0; } // deg/s, direction applied (0 if inactive)
     bool rateLimited() const { return m_limited; }
 
     void start(double currentAngle, double nowSeconds)

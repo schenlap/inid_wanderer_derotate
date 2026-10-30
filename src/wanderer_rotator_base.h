@@ -78,7 +78,7 @@ protected:
     INDI::PropertySwitch DerotateSP{2};            // Enable / Disable
     INDI::PropertySwitch DerotateDirSP{2};         // Normal / Reversed
     INDI::PropertyNumber DerotateSettingsNP{3};    // trim [%], max rate [deg/s], interval [s]
-    INDI::PropertyNumber DerotateStatusNP{3};      // az, alt, rate [deg/h] (read only)
+    INDI::PropertyNumber DerotateStatusNP{4};      // az, alt, field rotation rate [deg/h], rotator speed [deg/h] (read only)
     INDI::PropertyText   DerotateMountTP{1};       // INDI device name of the mount to follow
 
     FieldDerotation::Derotator m_Derotator;
@@ -95,7 +95,7 @@ protected:
     double m_pendingTarget = 0;
 
     enum { DEROT_TRIM, DEROT_MAXRATE, DEROT_INTERVAL };
-    enum { DEROT_AZ, DEROT_ALT, DEROT_RATE };
+    enum { DEROT_AZ, DEROT_ALT, DEROT_RATE, DEROT_SPEED };
 
     INDI::PropertySwitch SetZeroSP{1};
     INDI::PropertyNumber BacklashNP{1};
