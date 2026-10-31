@@ -132,5 +132,11 @@ that the rotator turns against the field rotation (check once on a real star fie
   `wanderer_rotator_lite.cpp` and `wanderer_rotator_lite_v2.cpp` of the INDI source tree.
 - Capture: USB traffic of the manufacturer's software (Linux usbmon/Wireshark). In the usbmon record the
   command text is the payload at the end of each *Submit* packet for endpoint 2 (OUT).
+  
+# Compile
+
+    sudo apt install cmake g++ libindi-dev
+    cmake -S . -B build && cmake --build build -j4
+
 
 *Not affiliated with Wanderer Astro. Product and company names belong to their respective owners.*
